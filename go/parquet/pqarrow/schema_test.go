@@ -48,7 +48,7 @@ func TestGetOriginSchemaBase64(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer arrow.UnregisterExtensionType(uuidType.ExtensionName())
-	pqschema, err := pqarrow.ToParquet(origArrSc, nil, pqarrow.DefaultWriterProps())
+	pqschema, err := pqarrow.ToParquet(origArrSc, nil, pqarrow.DefaultWriterProps(), nil)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -82,7 +82,7 @@ func TestGetOriginSchemaUnregisteredExtension(t *testing.T) {
 		{Name: "f2", Type: arrow.PrimitiveTypes.Int64, Metadata: md},
 		{Name: "uuid", Type: uuidType, Metadata: md},
 	}, nil)
-	pqschema, err := pqarrow.ToParquet(origArrSc, nil, pqarrow.DefaultWriterProps())
+	pqschema, err := pqarrow.ToParquet(origArrSc, nil, pqarrow.DefaultWriterProps(), nil)
 	require.NoError(t, err)
 
 	arrSerializedSc := flight.SerializeSchema(origArrSc, memory.DefaultAllocator)
@@ -126,7 +126,9 @@ func TestToParquetWriterConfig(t *testing.T) {
 					parquet.WithRootName(tt.name),
 					parquet.WithRootRepetition(tt.rootRepetition),
 				),
-				pqarrow.DefaultWriterProps())
+				pqarrow.DefaultWriterProps(),
+				nil,
+			)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.name, pqschema.Root().Name())
@@ -224,7 +226,7 @@ func TestConvertArrowFlatPrimitives(t *testing.T) {
 	arrowSchema := arrow.NewSchema(arrowFields, nil)
 	parquetSchema := schema.NewSchema(schema.MustGroup(schema.NewGroupNode("schema", parquet.Repetitions.Repeated, parquetFields, -1)))
 
-	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true)))
+	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true)), nil)
 	assert.NoError(t, err)
 	assert.True(t, parquetSchema.Equals(result))
 	for i := 0; i < parquetSchema.NumColumns(); i++ {
@@ -249,7 +251,7 @@ func TestConvertArrowParquetLists(t *testing.T) {
 	arrowSchema := arrow.NewSchema(arrowFields, nil)
 	parquetSchema := schema.NewSchema(schema.MustGroup(schema.NewGroupNode("schema", parquet.Repetitions.Repeated, parquetFields, -1)))
 
-	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true)))
+	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true)), nil)
 	assert.NoError(t, err)
 	assert.True(t, parquetSchema.Equals(result), parquetSchema.String(), result.String())
 	for i := 0; i < parquetSchema.NumColumns(); i++ {
@@ -276,7 +278,7 @@ func TestConvertArrowDecimals(t *testing.T) {
 	arrowSchema := arrow.NewSchema(arrowFields, nil)
 	parquetSchema := schema.NewSchema(schema.MustGroup(schema.NewGroupNode("schema", parquet.Repetitions.Repeated, parquetFields, -1)))
 
-	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true)))
+	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true)), nil)
 	assert.NoError(t, err)
 	assert.True(t, parquetSchema.Equals(result))
 	for i := 0; i < parquetSchema.NumColumns(); i++ {
@@ -295,7 +297,7 @@ func TestConvertArrowFloat16(t *testing.T) {
 	arrowSchema := arrow.NewSchema(arrowFields, nil)
 	parquetSchema := schema.NewSchema(schema.MustGroup(schema.NewGroupNode("schema", parquet.Repetitions.Repeated, parquetFields, -1)))
 
-	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true)))
+	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true)), nil)
 	assert.NoError(t, err)
 	assert.True(t, parquetSchema.Equals(result))
 	for i := 0; i < parquetSchema.NumColumns(); i++ {
@@ -314,7 +316,7 @@ func TestCoerceTImestampV1(t *testing.T) {
 	arrowSchema := arrow.NewSchema(arrowFields, nil)
 	parquetSchema := schema.NewSchema(schema.MustGroup(schema.NewGroupNode("schema", parquet.Repetitions.Repeated, parquetFields, -1)))
 
-	result, err := pqarrow.ToParquet(arrowSchema, parquet.NewWriterProperties(parquet.WithVersion(parquet.V1_0)), pqarrow.NewArrowWriterProperties(pqarrow.WithCoerceTimestamps(arrow.Microsecond)))
+	result, err := pqarrow.ToParquet(arrowSchema, parquet.NewWriterProperties(parquet.WithVersion(parquet.V1_0)), pqarrow.NewArrowWriterProperties(pqarrow.WithCoerceTimestamps(arrow.Microsecond)), nil)
 	assert.NoError(t, err)
 	assert.True(t, parquetSchema.Equals(result))
 	for i := 0; i < parquetSchema.NumColumns(); i++ {
@@ -337,7 +339,7 @@ func TestAutoCoerceTImestampV1(t *testing.T) {
 	arrowSchema := arrow.NewSchema(arrowFields, nil)
 	parquetSchema := schema.NewSchema(schema.MustGroup(schema.NewGroupNode("schema", parquet.Repetitions.Repeated, parquetFields, -1)))
 
-	result, err := pqarrow.ToParquet(arrowSchema, parquet.NewWriterProperties(parquet.WithVersion(parquet.V1_0)), pqarrow.NewArrowWriterProperties())
+	result, err := pqarrow.ToParquet(arrowSchema, parquet.NewWriterProperties(parquet.WithVersion(parquet.V1_0)), pqarrow.NewArrowWriterProperties(), nil)
 	assert.NoError(t, err)
 	assert.True(t, parquetSchema.Equals(result))
 	for i := 0; i < parquetSchema.NumColumns(); i++ {
@@ -368,7 +370,7 @@ func TestConvertArrowStruct(t *testing.T) {
 	arrowSchema := arrow.NewSchema(arrowFields, nil)
 	parquetSchema := schema.NewSchema(schema.MustGroup(schema.NewGroupNode("schema", parquet.Repetitions.Repeated, parquetFields, -1)))
 
-	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties())
+	result, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(), nil)
 	assert.NoError(t, err)
 	assert.True(t, parquetSchema.Equals(result))
 	for i := 0; i < parquetSchema.NumColumns(); i++ {
@@ -452,7 +454,7 @@ func TestUnsupportedTypes(t *testing.T) {
 			arrowFields := make([]arrow.Field, 0)
 			arrowFields = append(arrowFields, arrow.Field{Name: "unsupported", Type: tc.typ, Nullable: true})
 			arrowSchema := arrow.NewSchema(arrowFields, nil)
-			_, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties())
+			_, err := pqarrow.ToParquet(arrowSchema, nil, pqarrow.NewArrowWriterProperties(), nil)
 			assert.ErrorIs(t, err, arrow.ErrNotImplemented)
 			assert.ErrorContains(t, err, "support for "+tc.typ.ID().String())
 		})

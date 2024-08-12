@@ -614,7 +614,7 @@ func TestDeltaBinaryPackedMultipleBatches(t *testing.T) {
 	writerProps := pqarrow.DefaultWriterProps()
 
 	var buf bytes.Buffer
-	pw, err := pqarrow.NewFileWriter(schema, &buf, props, writerProps)
+	pw, err := pqarrow.NewFileWriter(schema, &buf, props, writerProps, nil)
 	require.NoError(t, err)
 	require.NoError(t, pw.Write(rec))
 	require.NoError(t, pw.Close())

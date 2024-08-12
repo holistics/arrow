@@ -781,7 +781,7 @@ func TestDictionaryReslice(t *testing.T) {
 			}
 			rec := b.NewRecord()
 			out := &bytes.Buffer{}
-			pqw, err := pqarrow.NewFileWriter(rec.Schema(), out, nil, pqarrow.NewArrowWriterProperties())
+			pqw, err := pqarrow.NewFileWriter(rec.Schema(), out, nil, pqarrow.NewArrowWriterProperties(), nil)
 			assert.NoError(t, err)
 			err = pqw.WriteBuffered(rec)
 			assert.NoError(t, err)

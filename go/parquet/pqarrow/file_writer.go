@@ -35,7 +35,7 @@ import (
 // and columns will be determined by the schema of the table, writing the file out to the provided writer.
 // The chunksize will be utilized in order to determine the size of the row groups.
 func WriteTable(tbl arrow.Table, w io.Writer, chunkSize int64, props *parquet.WriterProperties, arrprops ArrowWriterProperties) error {
-	writer, err := NewFileWriter(tbl.Schema(), w, props, arrprops)
+	writer, err := NewFileWriter(tbl.Schema(), w, props, arrprops, nil)
 	if err != nil {
 		return err
 	}
@@ -62,12 +62,12 @@ type FileWriter struct {
 // NewFileWriter returns a writer for writing Arrow directly to a parquetfile, rather than
 // the ArrowColumnWriter and WriteArrow functions which allow writing arrow to an existing
 // file.Writer, this will create a new file.Writer based on the schema provided.
-func NewFileWriter(arrschema *arrow.Schema, w io.Writer, props *parquet.WriterProperties, arrprops ArrowWriterProperties) (*FileWriter, error) {
+func NewFileWriter(arrschema *arrow.Schema, w io.Writer, props *parquet.WriterProperties, arrprops ArrowWriterProperties, logicalTypes []*LogicalType) (*FileWriter, error) {
 	if props == nil {
 		props = parquet.NewWriterProperties()
 	}
 
-	pqschema, err := ToParquet(arrschema, props, arrprops)
+	pqschema, err := ToParquet(arrschema, props, arrprops, logicalTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +92,7 @@ func NewFileWriter(arrschema *arrow.Schema, w io.Writer, props *parquet.WriterPr
 
 	return &FileWriter{wr: baseWriter, schema: arrschema, manifest: manifest, arrowProps: arrprops, ctx: NewArrowWriteContext(context.TODO(), &arrprops)}, nil
 }
+
 
 // NewRowGroup does what it says on the tin, creates a new row group in the underlying file.
 // Equivalent to `AppendRowGroup` on a file.Writer

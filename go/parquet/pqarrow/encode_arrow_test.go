@@ -221,6 +221,7 @@ func TestWriteArrowCols(t *testing.T) {
 		sink,
 		parquet.NewWriterProperties(parquet.WithVersion(parquet.V2_4)),
 		pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)),
+		nil,
 	)
 	require.NoError(t, err)
 
@@ -320,6 +321,7 @@ func TestWriteArrowInt96(t *testing.T) {
 		sink,
 		parquet.NewWriterProperties(parquet.WithAllocator(mem)),
 		pqarrow.NewArrowWriterProperties(pqarrow.WithDeprecatedInt96Timestamps(true), pqarrow.WithAllocator(mem)),
+		nil,
 	)
 	require.NoError(t, err)
 
@@ -372,6 +374,7 @@ func writeTableToBuffer(t *testing.T, mem memory.Allocator, tbl arrow.Table, row
 		sink,
 		parquet.NewWriterProperties(parquet.WithVersion(parquet.V1_0)),
 		props,
+		nil,
 	)
 	require.NoError(t, err)
 
@@ -454,7 +457,7 @@ func TestWriteKeyValueMetadata(t *testing.T) {
 		parquet.WithVersion(parquet.V1_0),
 	)
 	var buf bytes.Buffer
-	fw, err := pqarrow.NewFileWriter(sc, &buf, props, pqarrow.DefaultWriterProps())
+	fw, err := pqarrow.NewFileWriter(sc, &buf, props, pqarrow.DefaultWriterProps(), nil)
 	require.NoError(t, err)
 	err = fw.Write(rec)
 	require.NoError(t, err)
@@ -500,7 +503,7 @@ func TestWriteEmptyLists(t *testing.T) {
 	)
 	arrprops := pqarrow.DefaultWriterProps()
 	var buf bytes.Buffer
-	fw, err := pqarrow.NewFileWriter(sc, &buf, props, arrprops)
+	fw, err := pqarrow.NewFileWriter(sc, &buf, props, arrprops, nil)
 	require.NoError(t, err)
 	err = fw.Write(rec)
 	require.NoError(t, err)
@@ -558,7 +561,7 @@ func TestWriteAllNullsWithDeltaEncoding(t *testing.T) {
 	)
 	arrprops := pqarrow.DefaultWriterProps()
 	var buf bytes.Buffer
-	fw, err := pqarrow.NewFileWriter(sc, &buf, props, arrprops)
+	fw, err := pqarrow.NewFileWriter(sc, &buf, props, arrprops, nil)
 	require.NoError(t, err)
 	err = fw.Write(rec)
 	require.NoError(t, err)
@@ -1299,7 +1302,7 @@ func (ps *ParquetIOTestSuite) writeColumn(mem memory.Allocator, sc *schema.Group
 	arrsc, err := pqarrow.FromParquet(schema.NewSchema(sc), nil, nil)
 	ps.NoError(err)
 
-	writer, err := pqarrow.NewFileWriter(arrsc, &buf, parquet.NewWriterProperties(parquet.WithDictionaryDefault(false)), pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)))
+	writer, err := pqarrow.NewFileWriter(arrsc, &buf, parquet.NewWriterProperties(parquet.WithDictionaryDefault(false)), pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)), nil)
 	ps.NoError(err)
 
 	writer.NewRowGroup()
@@ -2004,7 +2007,7 @@ func TestBufferedRecWrite(t *testing.T) {
 
 	wr, err := pqarrow.NewFileWriter(sc, &buf,
 		parquet.NewWriterProperties(parquet.WithCompression(compress.Codecs.Snappy), parquet.WithDictionaryDefault(false), parquet.WithDataPageSize(100*1024)),
-		pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)))
+		pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)), nil)
 	require.NoError(t, err)
 
 	p1 := rec.NewSlice(0, SIZELEN/2)
@@ -2205,7 +2208,7 @@ func TestWriteTableMemoryAllocation(t *testing.T) {
 	var buf bytes.Buffer
 	wr, err := pqarrow.NewFileWriter(sc, &buf,
 		parquet.NewWriterProperties(parquet.WithCompression(compress.Codecs.Snappy)),
-		pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)))
+		pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)), nil)
 	require.NoError(t, err)
 
 	require.NoError(t, wr.Write(rec))
@@ -2232,7 +2235,9 @@ func TestEmptyListDeltaBinaryPacked(t *testing.T) {
 		parquet.NewWriterProperties(
 			parquet.WithDictionaryFor("ts.list.element", false),
 			parquet.WithEncodingFor("ts.list.element", parquet.Encodings.DeltaBinaryPacked)),
-		pqarrow.DefaultWriterProps())
+		pqarrow.DefaultWriterProps(),
+		nil,
+	)
 	require.NoError(t, err)
 
 	require.NoError(t, wr.WriteBuffered(arrowRec))

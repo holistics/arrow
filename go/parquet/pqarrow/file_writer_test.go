@@ -48,7 +48,7 @@ func TestFileWriterRowGroupNumRows(t *testing.T) {
 
 	output := &bytes.Buffer{}
 	writerProps := parquet.NewWriterProperties(parquet.WithMaxRowGroupLength(100))
-	writer, err := pqarrow.NewFileWriter(schema, output, writerProps, pqarrow.DefaultWriterProps())
+	writer, err := pqarrow.NewFileWriter(schema, output, writerProps, pqarrow.DefaultWriterProps(), nil)
 	require.NoError(t, err)
 
 	require.NoError(t, writer.Write(record))
@@ -81,7 +81,7 @@ func TestFileWriterNumRows(t *testing.T) {
 
 	output := &bytes.Buffer{}
 	writerProps := parquet.NewWriterProperties(parquet.WithMaxRowGroupLength(int64(maxRowGroupLength)))
-	writer, err := pqarrow.NewFileWriter(schema, output, writerProps, pqarrow.DefaultWriterProps())
+	writer, err := pqarrow.NewFileWriter(schema, output, writerProps, pqarrow.DefaultWriterProps(), nil)
 	require.NoError(t, err)
 
 	require.NoError(t, writer.Write(record))
@@ -125,6 +125,7 @@ func TestFileWriterBuffered(t *testing.T) {
 		pqarrow.NewArrowWriterProperties(
 			pqarrow.WithAllocator(alloc),
 		),
+		nil,
 	)
 	require.NoError(t, err)
 

@@ -295,7 +295,7 @@ func TestFileReaderWriterMetadata(t *testing.T) {
 	sc := arrow.NewSchema(tbl.Schema().Fields(), &meta)
 
 	var buf bytes.Buffer
-	writer, err := pqarrow.NewFileWriter(sc, &buf, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)))
+	writer, err := pqarrow.NewFileWriter(sc, &buf, nil, pqarrow.NewArrowWriterProperties(pqarrow.WithAllocator(mem)), nil)
 	require.NoError(t, err)
 	require.NoError(t, writer.WriteTable(tbl, tbl.NumRows()))
 	require.NoError(t, writer.Close())
@@ -344,7 +344,7 @@ func TestFileReaderColumnChunkBoundsErrors(t *testing.T) {
 	require.NoError(t, err)
 
 	output := &bytes.Buffer{}
-	writer, err := pqarrow.NewFileWriter(schema, output, parquet.NewWriterProperties(), pqarrow.DefaultWriterProps())
+	writer, err := pqarrow.NewFileWriter(schema, output, parquet.NewWriterProperties(), pqarrow.DefaultWriterProps(), nil)
 	require.NoError(t, err)
 
 	require.NoError(t, writer.Write(record))

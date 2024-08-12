@@ -90,7 +90,7 @@ func main() {
 		parquet.WithMaxRowGroupLength(64*1024*1024),
 	)
 	awProperties := pq.NewArrowWriterProperties(pq.WithStoreSchema())
-	pr, err := pq.NewFileWriter(av2arReader.Schema(), fp, pwProperties, awProperties)
+	pr, err := pq.NewFileWriter(av2arReader.Schema(), fp, pwProperties, awProperties, nil)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(5)
